@@ -8,28 +8,45 @@ import Image from "next/image";
 import { MdOutlineEmail } from "react-icons/md";
 import { FcGoogle } from "react-icons/fc";
 import { FieldValues, useForm } from 'react-hook-form';
+import Cookies from 'js-cookie';
 
 import api from "@/services/api";
-import logo from "../../../../public/logo.png";
-import warehouse from '../../../../public/warehouse2.jpg';
+import logo from "../../../public/logo.png";
+import warehouse from '../../../public/warehouse2.jpg';
 import { toastAlert } from "@/components/ui/alert";
 import { useState } from "react";
+import { signIn, getSession } from "next-auth/react";
 
 export default function Home () {
   const router = useRouter();
-  const { register, handleSubmit } = useForm();
+ const { register, handleSubmit } = useForm();
   const [loader, setLoader] = useState(false);
 
   const handleForm = async ({ email, password }: FieldValues) => {
     try {
-      await api.post("/sign-up", { email, password, name: 'rodrigo' });
+      const data = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
 
-      toastAlert({ icon: "success", title: 'User created!', timer: 2500 });
-      router.push('/');
-      setLoader(false);
+      if(data?.error) {
+        console.log(data);
+        return;
+      }
+      const teste = await getSession();
+      console.log(teste);      
+
+      // if(!data.settings.theme || (data.settings.theme && data.settings.theme === 'dark')) {
+      //     document.documentElement.classList.add("dark");
+      // }
+      
+      // router.push('/home');
+      setLoader(false); 
     } catch (err: any) { 
       setLoader(false);
       toastAlert({ icon: "error", title: err.message, timer: 2500 });
+
       console.log(err);
     } finally { 
       setLoader(false);
@@ -70,8 +87,8 @@ export default function Home () {
           </div>
           <div className="flex flex-col space-y-10 align-middle m-52">
             <div className="mx-auto flex w-full flex-col justify-center space-y-2 sm:w-[350px] text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
-              <p className="text-sm text-gray-400">Enter your email below to create your account</p>
+              <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+              <p className="text-sm text-gray-400">Enter your email below to sign in to your account</p>
             </div>
             <form noValidate onSubmit={handleSubmit(handleForm)} className="flex flex-col space-y-3">
               <Input 
@@ -90,7 +107,7 @@ export default function Home () {
                 className="text-[15px] dark !mt-2 rounded-full w-full"
               >
                 <div className={`flex flex-row ${loader && 'animate-pulse'}`}>
-                  {loader ? 'Loading...' : 'Sign up with Email'}
+                  {loader ? 'Loading...' : 'Sign in with Email'}
                   <MdOutlineEmail size={22} className="ml-2" />
                 </div>
               </Button>
@@ -105,7 +122,7 @@ export default function Home () {
               variant={'ghost'}
             >
               <div className="flex flex-row">
-                Sign up with google
+                Sign in Google
                 <FcGoogle size={22} className="ml-2" />
               </div>
             </Button>
